@@ -1,13 +1,25 @@
 {
   "name": "iholyshitcom",
-  "version": "0.1.0",
   "private": true,
-  "description": "Reusable bilingual publishing utilities and architecture notes.",
-  "type": "module",
-  "engines": {
-    "node": ">=20"
-  },
+  "workspaces": [
+    "apps/web"
+  ],
   "scripts": {
-    "test": "node --test test/*.test.mjs"
-  }
+    "dev": "npm run dev --workspace @newsroom/web",
+    "build": "npm run build --workspace @newsroom/web",
+    "lint": "npm run lint --workspace @newsroom/web",
+    "typecheck": "npm run typecheck --workspace @newsroom/web",
+    "test:db": "node --test supabase/tests/*.test.mjs",
+    "test:web": "node --test apps/web/tests/*.test.mjs",
+    "test:core": "node --test test/*.test.mjs",
+    "test": "npm run test:core && npm run test:web && npm run test:db",
+    "test:install": "node scripts/check-install.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15",
+    "embedded-postgres": "17.11.0-beta.19",
+    "pg": "8.23.1",
+    "supabase": "3.0.0"
+  },
+  "license": "MIT"
 }

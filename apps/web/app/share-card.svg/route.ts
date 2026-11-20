@@ -1,0 +1,1 @@
+export function GET(){return new Response('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630"><rect width="1200" height="630" fill="#111827"/><text x="600" y="340" font-family="sans-serif" font-size="100" text-anchor="middle" fill="white">NEWSROOM</text></svg>',{headers:{'Content-Type':'image/svg+xml'}});}

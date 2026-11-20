@@ -1,0 +1,8 @@
+import 'server-only';
+import {createClient} from '@supabase/supabase-js';
+import type {JSONContent} from '@tiptap/core';
+export type ManualPublic={slug:string;locale:'zh'|'en';title:string;summary:string;document:JSONContent;channel:string;topics?:string[];tags:string[];sources:{url:string;label:string}[];score:number;published_at:string;origin?:'manual'|'ai_reviewed';seo?:{title:string;meta_description:string;keywords:string[]}};
+export type ManualFeedItem=Pick<ManualPublic,'slug'|'title'|'summary'|'score'|'published_at'> & {category:string};
+function client(){if(process.env.NEWS_MANUAL_PUBLIC_READ==='false')return null;const url=process.env.SUPABASE_URL,key=process.env.SUPABASE_PUBLISHABLE_KEY;if(!url||!key)throw new Error('Manual public service is unavailable');return createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:(input,init)=>fetch(input,{...init,cache:'no-store',signal:AbortSignal.timeout(5000)})}});}
+export async function getManualArticle(slug:string,locale:'zh'|'en'):Promise<ManualPublic|null>{const c=client();if(!c)return null;const result=await c.rpc('get_public_manual_article',{p_slug:slug,p_locale:locale});if(result.error?.code==='PGRST202')return null;if(result.error)throw new Error('Manual article is unavailable');return result.data as ManualPublic|null;}
+export async function getManualFeed(locale:'zh'|'en'):Promise<ManualFeedItem[]>{const c=client();if(!c)return [];const result=await c.rpc('get_public_manual_feed',{p_locale:locale});if(result.error?.code==='PGRST202')return [];if(result.error||!Array.isArray(result.data))throw new Error('Manual feed is unavailable');return result.data as ManualFeedItem[];}

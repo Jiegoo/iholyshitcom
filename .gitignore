@@ -1,5 +1,12 @@
 node_modules/
+.next/
+*.tsbuildinfo
+__pycache__/
+*.py[cod]
+.venv/
 .env
 .env.*
 !.env.example
 .DS_Store
+supabase/.temp/
+supabase/.branches/

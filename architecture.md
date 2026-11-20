@@ -26,3 +26,9 @@ flowchart LR
 - **隐私与运维**：部署实例各自管理身份、密钥、数据保存、备份及可选统计；公开仓库不携带任何运行站点的账号、日志或数据。
 
 通用实现可以采用 TypeScript Web 框架、PostgreSQL、托管身份服务及独立任务执行器。具体依赖和数据库初始化方案以最终发行版的锁定文件及经过验证的安装说明为准。
+
+## Published implementation
+
+The application code is now included under `apps/web`, with shared contracts under `packages` and a data-free schema baseline under `supabase`. `workers/events` is optional and explicitly configured by each deployer. No crawler schedules or original-site account settings are included.
+
+The schema retains compatibility objects used by the shared application; these are structure and code, not operating data. Fresh installation creates no user, robot credential, article, source approval or private prompt. An existing independent Auth identity is bound by the explicit bootstrap script. See `docs/INSTALL.md` for the installation boundary and verification limits.

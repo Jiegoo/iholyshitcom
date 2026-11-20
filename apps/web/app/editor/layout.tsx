@@ -1,0 +1,2 @@
+import type {ReactNode} from 'react';
+export default function EditorLayout({children}:{children:ReactNode}){return <div className="editor-shell">{children}</div>}

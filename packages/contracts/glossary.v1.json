@@ -1,0 +1,21 @@
+{
+  "version": "glossary.v1",
+  "terms": [
+    {"id":"category.robotics","zh":"机器人","en":"Robotics"},
+    {"id":"category.bci","zh":"脑机接口","en":"Brain–Computer Interfaces"},
+    {"id":"category.energy","zh":"能源","en":"Energy"},
+    {"id":"category.chips-ai","zh":"芯片与人工智能","en":"Chips & AI"},
+    {"id":"category.space","zh":"太空","en":"Space"},
+    {"id":"category.biotech","zh":"生物科技","en":"Biotechnology"},
+    {"id":"ui.what_happened","zh":"发生了什么","en":"What Happened"},
+    {"id":"ui.why_it_matters","zh":"为什么重要","en":"Why It Matters"},
+    {"id":"ui.what_we_know","zh":"已知情况","en":"What We Know"},
+    {"id":"ui.what_we_dont_know","zh":"尚不清楚","en":"What We Don't Know"},
+    {"id":"ui.timeline","zh":"时间线","en":"Timeline"},
+    {"id":"ui.sources","zh":"来源","en":"Sources"},
+    {"id":"ui.shock_index","zh":"Newsroom Index","en":"Newsroom Index"},
+    {"id":"tech.large_language_model","zh":"大语言模型","en":"large language model"},
+    {"id":"tech.preprint","zh":"预印本","en":"preprint"},
+    {"id":"tech.peer_review","zh":"同行评审","en":"peer review"}
+  ]
+}

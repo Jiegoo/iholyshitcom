@@ -1,0 +1,3 @@
+import {NextResponse,type NextRequest} from 'next/server';
+import {createClient} from '../../../lib/supabase';
+export async function GET(request:NextRequest){const language=request.nextUrl.searchParams.get('lang')==='zh'?'zh':'en',code=request.nextUrl.searchParams.get('code');let status='failed';if(code&&code.length<=2048)try{const client=await createClient(),result=await client.auth.exchangeCodeForSession(code);if(!result.error)status='signed_in'}catch{}return new NextResponse(null,{status:303,headers:{Location:`/member?lang=${language}&status=${status}`,'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}})}

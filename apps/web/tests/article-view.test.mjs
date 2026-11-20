@@ -1,0 +1,24 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import http from 'node:http';import net from 'node:net';import {spawn} from 'node:child_process';import {once} from 'node:events';import {fileURLToPath} from 'node:url';
+test('article views require same origin and deduplicate a browser without storing its token',{timeout:60000},async()=>{
+ const calls=[];const mock=http.createServer((req,res)=>{let body='';req.on('data',chunk=>body+=chunk);req.on('end',()=>{if(req.url.startsWith('/rest/v1/rpc/'))calls.push({rpc:req.url.split('/').at(-1),...JSON.parse(body)});res.setHeader('content-type','application/json');res.end('true')})});
+ mock.listen(0,'127.0.0.1');await once(mock,'listening');const socket=net.createServer();socket.listen(0,'127.0.0.1');await once(socket,'listening');const port=socket.address().port;await new Promise(r=>socket.close(r));
+ const cwd=fileURLToPath(new URL('..',import.meta.url)),exe=fileURLToPath(new URL('../../../node_modules/next/dist/bin/next',import.meta.url));
+ const child=spawn(process.execPath,[exe,'start','-p',String(port)],{cwd,stdio:'ignore',env:{...process.env,SUPABASE_URL:`http://127.0.0.1:${mock.address().port}`,SUPABASE_SERVICE_ROLE_KEY:'fixture_service_role_only',NEXT_TELEMETRY_DISABLED:'1'}});const base=`http://127.0.0.1:${port}`;
+ try{let ready=false;for(let i=0;i<120;i++){if(child.exitCode!==null)throw Error('Next exited');try{await fetch(base);ready=true;break}catch{await new Promise(r=>setTimeout(r,100))}}assert.equal(ready,true);
+ const body=JSON.stringify({slug:'example-article',type:'manual'});const send=(headers={})=>fetch(`${base}/api/article-view`,{method:'POST',headers:{'content-type':'application/json',...headers},body});
+ assert.equal((await send({origin:'https://evil.example'})).status,403);
+ assert.equal((await send({origin:base,'user-agent':'Mozilla/5.0'})).status,403);assert.equal(calls.length,0);
+ const choose=decision=>fetch(`${base}/api/cookie-consent`,{method:'POST',headers:{origin:base,'content-type':'application/json'},body:JSON.stringify({decision})});
+ const accepted=await choose('accept');assert.equal(accepted.status,204);const consent=accepted.headers.get('set-cookie').split(';')[0];assert.equal(consent,'ihs_cookie_consent=accepted');
+ const first=await send({origin:base,'user-agent':'Mozilla/5.0',cookie:consent});assert.equal(first.status,204);const cookie=first.headers.get('set-cookie').split(';')[0];assert.match(first.headers.get('set-cookie'),/HttpOnly/);const second=await send({origin:base,'user-agent':'Mozilla/5.0',cookie:`${consent}; ${cookie}`});assert.equal(second.status,204);assert.equal(calls.length,2);assert.equal(calls[0].p_browser_hash,calls[1].p_browser_hash);assert.ok(!JSON.stringify(calls).includes(cookie));assert.equal((await send({origin:base,'user-agent':'ExampleBot',cookie:consent})).status,204);assert.equal(calls.length,2);
+ const rejected=await choose('reject');assert.equal(rejected.status,204);const cleared=rejected.headers.get('set-cookie');assert.match(cleared,/ihs_cookie_consent=;/);assert.match(cleared,/ihs_reader=;/);assert.match(cleared,/Max-Age=0/);assert.match(cleared,/ihs_site_reader=;/);assert.match(cleared,/ihs_visit=;/);
+ const visitBody={id:'00000000-0000-4000-8000-000000000001',path:'/en/manual/example-article',referrer:'https://www.google.com/search?q=private'};
+ const visit=(value,extra={})=>fetch(`${base}/api/site-visit`,{method:'POST',headers:{origin:base,'content-type':'application/json','user-agent':'Mozilla/5.0 iPhone Safari',...extra},body:JSON.stringify(value)});
+ assert.equal((await visit(visitBody)).status,403);assert.equal((await visit({...visitBody,path:'/editor'},{cookie:consent})).status,400);assert.equal((await visit({...visitBody,path:'/en/search?q=secret'},{cookie:consent})).status,400);
+ const hit=await visit(visitBody,{cookie:consent,'x-vercel-ip-country':'CN'});assert.equal(hit.status,204);const siteCookie=hit.headers.getSetCookie().find(c=>c.startsWith('ihs_site_reader=')).split(';')[0];
+ const siteCall=calls.at(-1);assert.equal(siteCall.rpc,'record_site_page_view');assert.equal(siteCall.p_referrer,'www.google.com');assert.equal(siteCall.p_country,'CN');assert.equal(siteCall.p_device,'mobile');assert.equal(siteCall.p_os,'iOS');assert.ok(!JSON.stringify(siteCall).includes('private'));
+ assert.equal((await visit({id:visitBody.id,seconds:15},{cookie:`${consent}; ${siteCookie}`})).status,204);assert.equal(calls.at(-1).rpc,'record_site_engagement');assert.equal(calls.at(-1).p_visitor,siteCall.p_visitor);
+ const count=calls.length;assert.equal((await visit(visitBody,{cookie:consent,'user-agent':'Googlebot'})).status,204);assert.equal(calls.length,count);
+ const prior=await fetch(`${base}/en/privacy`,{headers:{cookie}});assert.match(prior.headers.get('set-cookie'),/ihs_reader=;/);
+ }finally{child.kill('SIGTERM');await new Promise(r=>mock.close(r))}
+});

@@ -1,0 +1,5 @@
+[
+  {"input":"https://例子.测试/科技?版=一#片", "manual":"https://xn--fsqu00a.xn--0zwm56d/科技?版=一#片", "identity":"https://xn--fsqu00a.xn--0zwm56d/科技?版=一"},
+  {"input":"HTTPS://faß.de:443/a?b=2#part", "manual":"https://xn--fa-hia.de:443/a?b=2#part", "identity":"https://xn--fa-hia.de/a?b=2"},
+  {"input":"https://BÜCHER.example/News", "manual":"https://xn--bcher-kva.example/News", "identity":"https://xn--bcher-kva.example/News"}
+]

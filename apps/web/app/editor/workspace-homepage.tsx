@@ -1,0 +1,12 @@
+'use client';
+import {useActionState,useMemo,useState} from 'react';
+import {managePickInline,type PickState} from './homepage/inline-actions';
+import type {WorkspaceArticle} from './workspace-articles';
+function PickRow({item}:{item:WorkspaceArticle & {kind?:'manual'|'story'}}){
+ const [state,action,pending]=useActionState(managePickInline,{message:'',mode:null,loaded:false} as PickState);
+ return <li><div className="workspace-pick-title"><strong>{item.zh_title||item.en_title}</strong><small>{item.en_title} · {item.slug}</small></div><form action={action}><input type="hidden" name="slug" value={item.slug}/><input type="hidden" name="kind" value={item.kind??'manual'}/>{state.loaded&&<label>精选设置<select name="mode" defaultValue={state.mode??'auto'} key={state.mode}><option value="auto">自动选择</option><option value="pin">置顶精选</option><option value="exclude">不进入精选</option></select></label>}<button name="operation" value={state.loaded?'save':'load'} disabled={pending}>{pending?'处理中…':state.loaded?'保存':'管理精选'}</button>{state.message&&<p role="status">{state.message}</p>}</form></li>;
+}
+export function WorkspaceHomepage({items}:{items:WorkspaceArticle[]}){
+ const [query,setQuery]=useState('');const [page,setPage]=useState(1);const matches=useMemo(()=>items.filter(item=>item.status==='published'&&[item.zh_title,item.en_title,item.slug].some(v=>v?.toLowerCase().includes(query.trim().toLowerCase()))),[items,query]);const pages=Math.max(1,Math.ceil(matches.length/20)),current=Math.min(page,pages);
+ return <><div className="editor-page-heading"><div><p className="editor-kicker">CONTENT / HOMEPAGE</p><h1>首页精选</h1><p>头条与精选均每半小时轮换，只选北京时间当天首次发布的文章：当前热度前20篇作为候选，头条从前3篇轮播，精选展示另外最多4篇，两处不重复。置顶用于同分优先，排除立即生效，不以旧稿补位。</p></div></div><section className="workspace-card"><div className="workspace-card-heading"><div><h2>已发布文章</h2><p>选择文章后可在此直接调整精选设置。</p></div><span>{matches.length} 篇</span></div><div className="workspace-filters"><label>搜索文章<input value={query} onChange={e=>{setQuery(e.target.value);setPage(1)}} placeholder="标题或网址标识" /></label></div>{matches.length===0?<p className="workspace-empty">没有找到已发布文章。</p>:<ul className="workspace-picks">{matches.slice((current-1)*20,current*20).map(item=><PickRow item={item} key={item.id}/>)}</ul>}{pages>1&&<nav className="manual-pagination" aria-label="精选文章分页"><button type="button" disabled={current===1} onClick={()=>setPage(current-1)}>上一页</button><span>第 {current} / {pages} 页</span><button type="button" disabled={current===pages} onClick={()=>setPage(current+1)}>下一页</button></nav>}</section></>;
+}
