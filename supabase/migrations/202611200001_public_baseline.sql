@@ -1972,7 +1972,7 @@ begin
  then raise exception 'explicit article model configuration unavailable'; end if;
  for a in select x.id from public.articles x
   where (x.canonical_url ~ '^https://www[.]example[.]invalid/news-events/news/[0-9]{4}/[0-9]{2}/[a-z0-9-]+/?$' or x.canonical_url ~ '^https://www[.]example[.]invalid/[a-zA-Z0-9][a-zA-Z0-9/_-]*/?$')
-   
+
    and not exists(select 1 from public.article_auto_tasks t where t.article_id=x.id)
    and not exists(select 1 from public.story_articles sa where sa.article_id=x.id)
   order by (select count(*) from public.article_auto_tasks prior join public.articles pa on pa.id=prior.article_id where pa.source_id=x.source_id and prior.created_at>clock_timestamp()-interval '24 hours'),(exists(select 1 from public.signal_event_article_matches sm where sm.article_id=x.id)) desc,x.published_at desc nulls last,x.id limit 200
@@ -21844,6 +21844,3 @@ GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.reader_history TO authenticate
 
 
 GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.reader_profiles TO authenticated;
-
-
-
