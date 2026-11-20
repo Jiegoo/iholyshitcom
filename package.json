@@ -1,0 +1,13 @@
+{
+  "name": "iholyshitcom",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reusable bilingual publishing utilities and architecture notes.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}
